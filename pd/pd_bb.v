@@ -9,6 +9,6 @@ module pd (
 	input		clk_clk;
 	inout		opencores_i2c_0_export_0_scl_pad_io;
 	inout		opencores_i2c_0_export_0_sda_pad_io;
-	output	[11:0]	pio_0_external_connection_export;
+	output	[7:0]	pio_0_external_connection_export;
 	input		reset_reset_n;
 endmodule
