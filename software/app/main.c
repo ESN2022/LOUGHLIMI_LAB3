@@ -52,9 +52,40 @@ int main(int argc, char *argv[])
 
     else {
 			printf("Error adress\n");}
-	
+    //Calibrate the accelerometer
+    //Calibrate the accelerometer
+    int x_0g = 0, y_0g = 0, z_1g = 0;
+    int num_samples = 10; // number of samples to take for calibration
+    int i;
+    for(i = 0; i < num_samples; i++){
+        x_0g += lecture_i2c(DXL) | lecture_i2c(DXM) << 8;
+        y_0g += lecture_i2c(DYL) | lecture_i2c(DYM) << 8;
+        z_1g += lecture_i2c(DZL) | lecture_i2c(DZM) << 8;
+    }
+    x_0g /= num_samples;
+    y_0g /= num_samples;
+    z_1g /= num_samples;
+    int SZ = 256; // sensitivity of the ADXL345 in LSB/g
+    int x_offset = -round((x_0g / num_samples - 15.6) / 4);
+    int y_offset = -round((y_0g  / num_samples - 15.6) / 4);
+    int z_offset = -round((z_1g / num_samples - 15.6) / 4);
+    printf("Offsets: X=%d, Y=%d, Z=%d\n", x_offset, y_offset, z_offset);
+
+    //Write the offset values to the offset registers
+    I2C_start(OPENCORES_I2C_0_BASE, ADD, 0);
+	I2C_write(OPENCORES_I2C_0_BASE, OFSX, x_offset & 0xff);
+    //I2C_write(OPENCORES_I2C_0_BASE, OFSX, 0);
+    I2C_write(OPENCORES_I2C_0_BASE, x_offset, 0);
+    I2C_start(OPENCORES_I2C_0_BASE, ADD, 0);
+	I2C_write(OPENCORES_I2C_0_BASE, OFSX, y_offset & 0xff);
+    //I2C_write(OPENCORES_I2C_0_BASE, OFSY, 0);
+    I2C_write(OPENCORES_I2C_0_BASE, y_offset, 0);
+    I2C_start(OPENCORES_I2C_0_BASE, ADD, 0);
+	I2C_write(OPENCORES_I2C_0_BASE, OFSX, z_offset & 0xff);
+    //I2C_write(OPENCORES_I2C_0_BASE, OFSZ, 0);
+    I2C_write(OPENCORES_I2C_0_BASE, z_offset, 0);
 	while(1){
-	usleep(40000);
+	usleep(70000);
 
 	datax0 =  lecture_i2c(DXL); 
 	datax1 =  lecture_i2c(DXM);
@@ -63,11 +94,17 @@ int main(int argc, char *argv[])
 	dataz0 =  lecture_i2c(DZL);
 	dataz1 = lecture_i2c(DZM);
 	
-	printf("----------------------------\n Axis X: %d\n Axis Y: %d\n Axis Z: %d\n ----------------------------\n",((datax1 <<8)| datax0)/OFSX,((datay1 <<8)| datay0)/OFSY,((dataz1 <<8)| dataz0))/OFSZ ;
+	int x_actual = ((datax1 <<8)| datax0) - x_offset;
+    int y_actual = ((datay1 <<8)| datay0) - y_offset;
+    int z_actual = (((dataz1 <<8)| dataz0) - z_offset) ;//+ SZ;
+	
+
+
+	//printf("----------------------------\n Axis X: %d\n Axis Y: %d\n Axis Z: %d\n ----------------------------\n",((datax1 <<8)| datax0),((datay1 <<8)| datay0),((dataz1 <<8)| dataz0)) ;
+	printf("----------------------------\n Axis X: %d\n Axis Y: %d\n Axis Z: %d\n ----------------------------\n",x_actual,y_actual,z_actual );
 		
 		
 	}
 
     return 0;
 }
-

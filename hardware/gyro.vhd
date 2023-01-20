@@ -22,6 +22,15 @@ end gyro;
 
 
 architecture ARCH of gyro is
+
+component septseg is
+    
+        port (
+            number : in std_logic_vector(3 downto 0);
+            display : out std_logic_vector(6 downto 0)
+        );
+       
+    end component septseg;
        
 component pd is
 		port (
@@ -32,11 +41,17 @@ component pd is
 			reset_reset_n                       : in    std_logic                    := 'X'  -- reset_n
 		);
 	end component pd;
-	
+	signal U11, U22, U33,U44,U55,U66 : std_logic_vector(6 downto 0);
     --signal cop : std_logic_vector(8 downto 0);
     begin
          chip_select <= '1';
-			alt_add <= '0';
+			alt_add <= '1';
+			U1 : septseg port map("0000", U11);
+			U2 : septseg port map("0000", U22);
+			U3 : septseg port map("0000", U33);
+			U4 : septseg port map("0000", U44);
+			U5 : septseg port map("0000", U55);
+			U6 : septseg port map("0000", U66);
 			U : pd port map(clk_clk,i2c_scl ,i2c_sda,oto,reset_reset_n);
 
     
